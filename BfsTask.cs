@@ -11,47 +11,60 @@ namespace Dungeon
     {
         public static IEnumerable<SinglyLinkedList<Point>> FindPaths(Map map, Point start, Point[] chests)
         {
-            var chestsMap = new HashSet<Point>();
-            var path = new SinglyLinkedList<Point>(start);
+            var chestMap = new HashSet<Point>();
+            var visitMap = new HashSet<Point>();
             var queue = new Queue<Point>();
             var point = new Point();
+            var result = new HashSet<SinglyLinkedList<Point>>();
 
             foreach (var item in chests)
-                chestsMap.Add(item);
+            {
+                chestMap.Add(item);
+            }
 
             queue.Enqueue(start);
 
-            while (queue.Count != 0 || chestsMap.Count != 0)
+            while (queue.Count != 0)
             {
-
-                if (queue.Count == 0)
-                {
-                    for (var dy = -1; dy <= 1; dy++)
-                        for (var dx = -1; dx <= 1; dx++)
-                            if (dx != 0 && dy != 0) continue;
-                            else queue.Enqueue(new Point { X = point.X + dx, Y = point.Y + dy });
-                }
                 point = queue.Dequeue();
 
-                if (point.X < 0 || point.X >= map.Dungeon.GetLength(0) || point.Y < 0
-                    || point.Y >= map.Dungeon.GetLength(1)) continue;
-                if (map.Dungeon[point.X, point.Y] != MapCell.Empty) continue;
-                if (!path.Contains(point))
+                if (!map.InBounds(point) || map.Dungeon[point.X, point.Y] != MapCell.Empty) continue;
+
+                if (!visitMap.Contains(point))
                 {
-                    //if (path.Previous != null)
-                    //{
-                    //    var t = path.Previous;
-                    //    path = new SinglyLinkedList<Point>(point, t);
-                    //}
-                    path = new SinglyLinkedList<Point>(point, path);
-                }
-                if (chestsMap.Contains(point))
-                {
-                    chestsMap.Remove(point);
-                    yield return path;
+                    visitMap.Add(point);
+                    if (result.Count == 0) result.Add(new SinglyLinkedList<Point>(point));
+                    else
+                    {
+                        foreach (var item in visitMap)
+                        {
+                            if (item == new Point(point.X - 1, point.Y))
+                                result.Add(new SinglyLinkedList<Point>(point, result
+                                    .SingleOrDefault(x => x.Value == new Point(point.X - 1, point.Y))));
+                            if (item == new Point(point.X, point.Y - 1))
+                                result.Add(new SinglyLinkedList<Point>(point, result
+                                    .SingleOrDefault(x => x.Value == new Point(point.X, point.Y - 1))));
+                            if (item == new Point(point.X + 1, point.Y))
+                                result.Add(new SinglyLinkedList<Point>(point, result
+                                    .SingleOrDefault(x => x.Value == new Point(point.X + 1, point.Y))));
+                            if (item == new Point(point.X, point.Y + 1))
+                                result.Add(new SinglyLinkedList<Point>(point, result
+                                    .SingleOrDefault(x => x.Value == new Point(point.X, point.Y + 1))));
+                        }
+
+                        if (chestMap.Contains(point)) yield return result.Last();
+                    }
                 }
 
-
+                for (var dy = -1; dy <= 1; dy++)
+                    for (var dx = -1; dx <= 1; dx++)
+                        if (dx != 0 && dy != 0) continue;
+                        else
+                        {
+                            var tPoint = new Point { X = point.X + dx, Y = point.Y + dy };
+                            if (!visitMap.Contains(tPoint))
+                                queue.Enqueue(new Point { X = point.X + dx, Y = point.Y + dy });
+                        }
             }
 
             yield break;
