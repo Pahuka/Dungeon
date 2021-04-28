@@ -1,72 +1,44 @@
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace Dungeon
 {
     public class BfsTask
     {
-        public static void PointGeneration(HashSet<Point> visit, Map map, Queue<Point> qVisit, Point point)
-        {
-            for (var dy = -1; dy <= 1; dy++)
-                for (var dx = -1; dx <= 1; dx++)
-                    if (dx != 0 && dy != 0) continue;
-                    else
-                    {
-                        var tPoint = new Point { X = point.X + dx, Y = point.Y + dy };
-                        if (!visit.Contains(tPoint) & map.InBounds(tPoint) & !qVisit.Contains(tPoint))
-                            qVisit.Enqueue(new Point { X = point.X + dx, Y = point.Y + dy });
-                    }
-        }
-
         public static IEnumerable<SinglyLinkedList<Point>> FindPaths(Map map, Point start, Point[] chests)
         {
-            var chestMap = new HashSet<Point>();
             var visitMap = new HashSet<Point>();
             var queue = new Queue<Point>();
-            var point = new Point();
-            var result = new HashSet<SinglyLinkedList<Point>>();
+            var result = new Dictionary<Point, SinglyLinkedList<Point>>();
 
-            foreach (var item in chests)
-                chestMap.Add(item);
-
+            result.Add(start, new SinglyLinkedList<Point>(start));
+            visitMap.Add(start);
             queue.Enqueue(start);
 
             while (queue.Count != 0)
             {
-                point = queue.Dequeue();
+                var point = queue.Dequeue();
 
                 if (map.Dungeon[point.X, point.Y] != MapCell.Empty) continue;
 
-                if (!visitMap.Contains(point))
-                {
-                    visitMap.Add(point);
-
-                    if (result.Count == 0) result.Add(new SinglyLinkedList<Point>(point));
-                    else
-                    {
-                        if (visitMap.Contains(new Point(point.X - 1, point.Y)))
-                            result.Add(new SinglyLinkedList<Point>(point, result
-                                .First(x => x.Value == new Point(point.X - 1, point.Y))));
-                        if (visitMap.Contains(new Point(point.X, point.Y - 1)))
-                            result.Add(new SinglyLinkedList<Point>(point, result
-                                .First(x => x.Value == new Point(point.X, point.Y - 1))));
-                        if (visitMap.Contains(new Point(point.X + 1, point.Y)))
-                            result.Add(new SinglyLinkedList<Point>(point, result
-                                .First(x => x.Value == new Point(point.X + 1, point.Y))));
-                        if (visitMap.Contains(new Point(point.X, point.Y + 1)))
-                            result.Add(new SinglyLinkedList<Point>(point, result
-                                .First(x => x.Value == new Point(point.X, point.Y + 1))));
-
-                        if (chestMap.Contains(point))
+                for (var dy = -1; dy <= 1; dy++)
+                    for (var dx = -1; dx <= 1; dx++)
+                        if (dx != 0 && dy != 0) continue;
+                        else
                         {
-                            chestMap.Remove(point);
-                            yield return result.Last();
+                            var tPoint = new Point { X = point.X + dx, Y = point.Y + dy };
+                            if (!visitMap.Contains(tPoint) & map.InBounds(tPoint) & !queue.Contains(tPoint))
+                            {
+                                queue.Enqueue(tPoint);
+                                visitMap.Add(tPoint);
+                                result.Add(tPoint, new SinglyLinkedList<Point>(tPoint, result[point]));
+                            }
                         }
-                    }
-                }
+            }
 
-                if (chestMap.Count != 0) PointGeneration(visitMap, map, queue, point);
+            foreach (var item in chests)
+            {
+                if (result.ContainsKey(item)) yield return result[item];
             }
 
             yield break;

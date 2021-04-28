@@ -49,7 +49,8 @@ namespace Dungeon
 			yield return Map.FromText(Properties.Resources.Dungeon2);
 			yield return Map.FromText(Properties.Resources.Dungeon3);
 			yield return Map.FromText(Properties.Resources.Dungeon4);
-		}
+            yield return Map.FromText(Properties.Resources.BigTestDungeon);
+        }
 
 
 		private void DrawLevelSwitch(Map[] levels, FlowLayoutPanel menuPanel)
