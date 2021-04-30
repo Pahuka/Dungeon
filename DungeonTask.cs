@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace Dungeon
@@ -23,11 +20,11 @@ namespace Dungeon
                 foreach (var point in items)
                 {
                     index++;
-                    if (index == 2)
+                    if (index >= 2 & tempValue != point)
                     {
                         result.Add(Tuple.Create(tempValue, point));
                         index = 1;
-                        tempValue = point;
+                        //tempValue = point;
                     }
                     tempValue = point;
                 }
@@ -40,10 +37,10 @@ namespace Dungeon
 		{
             var startPath = BfsTask.FindPaths(map, map.InitialPosition, map.Chests);
             var endPath = BfsTask.FindPaths(map, map.Exit, map.Chests);
-            var pathToExit = BfsTask.FindPaths(map, map.InitialPosition, new Point[] { map.Exit });
+            var pathToExit = BfsTask.FindPaths(map, map.InitialPosition, new Point[] { map.Exit }).FirstOrDefault();
             var pointList = new List<Point>();
 
-            if (pathToExit.Count() == 0) return new MoveDirection[0];
+            if (pathToExit == null) return new MoveDirection[0];
             if (startPath.Count() != 0 && endPath.Count() != 0)
             {
                 pointList.AddRange(endPath
@@ -53,11 +50,11 @@ namespace Dungeon
                 pointList.AddRange(startPath
                     .Where(x => pointList.Contains(x.Value))
                     .SelectMany(x => x));
-                pointList = pointList.Distinct().Reverse().ToList();
+                pointList.Reverse();
             }
             else
             {
-                pointList.AddRange(pathToExit.SelectMany(x => x).Reverse());
+                pointList.AddRange(pathToExit.Reverse().ToList());
             }
 
             var bigramList = PathBigrams(pointList);

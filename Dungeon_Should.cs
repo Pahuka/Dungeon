@@ -148,7 +148,25 @@ namespace Dungeon
 			Assert.AreEqual(new[] {MoveDirection.Up, MoveDirection.Left}, path);
 		}
 
-		[Test]
+        [Test]
+        public void Return_ShortestPath4()
+        {
+            var textMap = new[]
+            {
+                "P#C",
+                " # ",
+                "  E"
+            };
+            var map = Map.FromLines(textMap);
+
+            var path = DungeonTask.FindShortestPath(map);
+
+            Assert.AreEqual(new[] { MoveDirection.Down, MoveDirection.Down,
+                MoveDirection.Right, MoveDirection.Right, MoveDirection.Up, MoveDirection.Up,
+                MoveDirection.Down, MoveDirection.Down}, path);
+        }
+
+        [Test]
 		public void ReturnShortestPath3()
 		{
 			var map = Map.FromText(Properties.Resources.BigTestDungeon);
