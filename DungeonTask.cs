@@ -9,13 +9,17 @@ namespace Dungeon
     {
         public static MoveDirection[] FindShortestPath(Map map)
         {
+            var pathToExit = BfsTask.FindPaths(map, map.InitialPosition, new Point[] { map.Exit }).FirstOrDefault();
+
+            if (pathToExit == null) return new MoveDirection[0];
+            if (map.Chests.Any(chest => pathToExit.ToList().Contains(chest)))
+                return pathToExit.Reverse().ToList().ParseDirection();
+
             var startPath = BfsTask.FindPaths(map, map.InitialPosition, map.Chests);
             var endPath = startPath
                 .Select(chest => Tuple.Create(chest, BfsTask.FindPaths(map, chest.Value, new[] { map.Exit })
                 .FirstOrDefault())).MinElement();
-            var pathToExit = BfsTask.FindPaths(map, map.InitialPosition, new Point[] { map.Exit }).FirstOrDefault();
 
-            if (pathToExit == null) return new MoveDirection[0];
             if (endPath == null) return pathToExit.Reverse().ToList().ParseDirection().ToArray();
 
             return endPath.Item1.Reverse().ToList().ParseDirection()
